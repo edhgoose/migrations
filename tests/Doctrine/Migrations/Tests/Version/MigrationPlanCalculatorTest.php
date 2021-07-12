@@ -204,12 +204,12 @@ final class MigrationPlanCalculatorTest extends TestCase
      */
     public function testPlanWhenMigrationsOutOfOrder(string $to, array $expectedPlan, string $direction): void
     {
-    	// B and C are migrations created after A and are in this branch (created in the setUp method)
+        // B and C are migrations created after A and are in this branch (created in the setUp method)
         $e1 = new ExecutedMigration(new Version('B'));
-		$e2 = new ExecutedMigration(new Version('C'));
+        $e2 = new ExecutedMigration(new Version('C'));
 
-		// D is a migration from another branch - it was after A, B and C, but it is not registered in this branch.
-		$e3 = new ExecutedMigration(new Version('D'));
+        // D is a migration from another branch - it was after A, B and C, but it is not registered in this branch.
+        $e3 = new ExecutedMigration(new Version('D'));
 
         $this->metadataStorage
             ->expects(self::atLeastOnce())
@@ -235,12 +235,12 @@ final class MigrationPlanCalculatorTest extends TestCase
     {
         return [
             [
-            	// We're going up to C - because that's the latest migration on this branch
-            	'C',
-				// And we want to execute just A (because B & C are already executed, and D is on a different branch)
-				['A'],
-				Direction::UP
-			],
+                // We're going up to C - because that's the latest migration on this branch
+                'C',
+                // And we want to execute just A (because B & C are already executed, and D is on a different branch)
+                ['A'],
+                Direction::UP
+            ],
         ];
     }
 
