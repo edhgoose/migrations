@@ -197,6 +197,53 @@ final class MigrationPlanCalculatorTest extends TestCase
         ];
     }
 
+    /**
+     * @param string[] $expectedPlan
+     *
+     * @dataProvider getPlanUpWhenMigrationsOutOfOrder
+     */
+    public function testPlanWhenMigrationsOutOfOrder(string $to, array $expectedPlan, string $direction): void
+    {
+    	// B and C are migrations created after A and are in this branch (created in the setUp method)
+        $e1 = new ExecutedMigration(new Version('B'));
+		$e2 = new ExecutedMigration(new Version('C'));
+
+		// D is a migration from another branch - it was after A, B and C, but it is not registered in this branch.
+		$e3 = new ExecutedMigration(new Version('D'));
+
+        $this->metadataStorage
+            ->expects(self::atLeastOnce())
+            ->method('getExecutedMigrations')
+            ->willReturn(new ExecutedMigrationsList([$e1, $e2, $e3]));
+
+        $plan = $this->migrationPlanCalculator->getPlanUntilVersion(new Version($to));
+
+        self::assertCount(count($expectedPlan), $plan);
+
+        self::assertSame($direction, $plan->getDirection());
+
+        foreach ($expectedPlan as $itemN => $version) {
+            self::assertSame($direction, $plan->getItems()[$itemN]->getDirection());
+            self::assertEquals(new Version($version), $plan->getItems()[$itemN]->getVersion());
+        }
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getPlanUpWhenMigrationsOutOfOrder(): array
+    {
+        return [
+            [
+            	// We're going up to C - because that's the latest migration on this branch
+            	'C',
+				// And we want to execute just A (because B & C are already executed, and D is on a different branch)
+				['A'],
+				Direction::UP
+			],
+        ];
+    }
+
     public function testCustomMigrationSorting(): void
     {
         $reverseSorter           = new class implements Comparator {
